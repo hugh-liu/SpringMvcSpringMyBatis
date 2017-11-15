@@ -1,0 +1,28 @@
+<mvc:View height="100%" xmlns:core="sap.ui.core" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:me="com.sap.me.control">
+<Page title="班次班组维护" showNavButton="true">
+	<headerContent>
+		<Button icon="sap-icon://eraser" tooltip="eraser" />
+	</headerContent>
+	<content>
+		<List headerText="" mode="none" inset="true">
+			<CustomListItem>
+				<HBox alignItems="Center" justifyContent="Start">
+					<me:Input id="pro_shift" placeholder="班次" type="Text" maxLength="40" width="256px" showClear="true" showBrowse="true" />	
+				</HBox>
+			</CustomListItem>
+			<CustomListItem>
+				<HBox alignItems="Center" justifyContent="Start">
+					<me:Input id="user_shift" placeholder="班组" type="Text" maxLength="40" width="256px" showClear="true" showBrowse="true" />	
+				</HBox>
+			</CustomListItem>
+		</List>
+	</content>
+	<footer>
+		<Bar>
+			<contentMiddle>
+				<Button text="确认并返回" type="default" icon="sap-icon://eraser"/>
+			</contentMiddle>
+		</Bar>
+	</footer>
+</Page>
+</mvc:View>

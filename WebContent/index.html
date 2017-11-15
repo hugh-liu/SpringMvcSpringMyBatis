@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv='Content-Type' content='text/html;charset=UTF-8'/>
+
+		<script src="http://itdaix-pc:50000/sapui5-sdk/resources/sap-ui-core.js"
+				id="sap-ui-bootstrap"
+				data-sap-ui-libs="sap.m"
+				data-sap-ui-theme="sap_bluecrystal">
+		</script>
+		<!-- only load the mobile lib "sap.m" and the "sap_bluecrystal" theme -->
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+		
+		<script>
+				
+		sap.ui.localResources("com.sap.me.ui5.util");
+        jQuery.sap.registerModulePath('util', 'com/sap/me/ui5/util');
+        
+        // tell UI5 where to find stuff
+        sap.ui.localResources("com.sap.me.framework");
+        sap.ui.localResources("com.sap.me.datacollection");
+        sap.ui.localResources("com.sap.me.security");
+        sap.ui.localResources("com.sap.me.control");
+        sap.ui.localResources("com.sap.me.ui5.util");
+		
+        jQuery.sap.registerModulePath('ApplicationBase', 'ApplicationBase');
+        jQuery.sap.registerModulePath('Application', 'Application');
+
+        // launch application
+        jQuery.sap.require("Application");
+        //var oApp = new Application({root : "content", appView: "com.sap.me.framework.view.App"});
+        
+				sap.ui.localResources("test01");
+				var app = new sap.m.App({initialPage:"idtest011"});
+				var page = sap.ui.view({id:"idtest011", viewName:"test01.test01", type:sap.ui.core.mvc.ViewType.XML});
+				app.addPage(page);
+				app.placeAt("content");
+		</script>
+
+	</head>
+	<body class="sapUiBody" role="application">
+		<div id="content"></div>
+	</body>
+</html>

@@ -1,0 +1,442 @@
+
+.inputUpperCase {
+}
+
+.inputUpperCase > .sapMInputInner {
+   text-transform: uppercase;
+}
+.inputUpperCase > .sapMInputBaseInner {
+   text-transform: uppercase;
+}
+
+.truncatedLabel {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.footerBarButtonPadding {
+    padding-left: 10px;
+}
+.footerBarButtonPadding img {
+  padding-right: 4px;
+}
+
+.notRequiredLabel {
+    text-align: left;
+    padding-top:18px;
+    padding-left: 4px;
+}
+
+.requiredLabel {
+    text-align: left;
+    padding-top:18px;
+    padding-left: 4px;
+}
+
+/* this is needed for sap_mvi theme to show * label - taken from sap_bluecrystal theme CSS */
+.requiredLabel:before {
+    content: "*";
+    color: #007cc0;
+    font-size: 1rem;
+}
+
+.requiredItem {
+  width: 97%;
+}
+
+.sapMExtendedInput {
+   display: table-cell;
+}
+
+.sapMInputUpperCase {
+   text-transform: uppercase;
+}
+
+.sapMInputClearBtn {
+    display: table-cell !important;
+    position: relative;
+    margin-left: 0px;  /* -22px; */
+    width: 36px;
+    background-color: #ffffff;
+    border: 1px solid #bfbfbf;
+    border-radius: 0;
+    -webkit-appearance: none;
+    margin: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.sapMInputClearIcon {
+    display: table-cell !important;
+    width: 24px;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin-top: 11px;
+    margin-left: 5px;    
+    color: rgb(102, 102, 102);
+}
+
+.sapMInputBrowseBtn {
+    display: table-cell !important;
+    position: relative;
+    margin-left: 0px;  /* -22px; */
+    width: 36px;
+    background-color: #ffffff;
+    border: 1px solid #bfbfbf;
+    border-radius: 0;
+    -webkit-appearance: none;
+    margin: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.sapMInputBrowseIcon {
+    display: table-cell !important;
+    width: 32px;
+    cursor: pointer;
+    position:absolute;
+    top: 0;
+    left: 0;
+    margin-top: 11px;
+    margin-left: 2px;    
+    color: rgb(102, 102, 102);    
+}
+
+.sapMTextAreaClearBtn {
+    display: table-cell;
+    position: relative;
+    width: 36px;
+}
+
+.sapMTextAreaClearIcon {
+    width: 24px;
+    cursor: pointer;
+    position:absolute;
+    top: 0;
+    left: 0;
+    margin-top: 11px;
+    margin-left: 5px;    
+    color: rgb(102, 102, 102);    
+}
+
+.authenticationHBox {
+}
+
+.authenticationHBox .sapMFlexItem:first-child {
+  text-align: right;
+  padding-top: 12px;
+  width: 40%;
+}
+
+.authenticationHBox .sapMFlexItem:last-child {
+  padding-left: 3px;
+  width: 60%;
+}
+
+.authenticationMessageLabel {
+  padding-top: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.authenticationMessageHBox {
+}
+
+.authenticationUserLabel {
+}
+
+.authenticationUserInput {
+}
+
+.authenticationPwdLabel {
+}
+.authenticationPwdInput {
+}
+
+.logNCDataField {
+}
+
+.logNCDataLabel {
+}
+
+.logNCDataItem {
+}
+
+.logNCDataItem .sapMFlexItem:first-child {
+  text-align: right;
+  padding-top: 6px;
+  padding-left: 10px;
+}
+
+.logNCDataItem .sapMFlexItem:last-child {
+  padding-left: 3px;
+  width: 98%;
+}
+
+.dataCollectionApplyToAllLabel {
+  line-height: 3em !important;
+  font-size: 1em !important;
+}
+
+.dataCollectionGroupLabel {
+  padding-right: 4px;
+}
+
+.dataCollectionGroupTitle {
+  padding-top: 6px;
+}
+
+.dataCollectionSfcSelectedLabel {
+    padding-right: 10px;
+}
+
+.dataCollectionSfcLabel {
+    padding-right: 10px;
+}
+
+.dataCollectionSfcCountLabel {
+}
+
+.dataCollectionSfcTitle {
+}
+
+.dataCollectionField {
+  width: 97% !important;
+}
+
+.dataCollectionParameterHeader {
+    width : 95%;
+}
+.dataCollectionParameterHeaderLeft {
+    width : 50% !important;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+.dataCollectionParameterHeaderRight {
+    width : 50% !important;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+.dataCollectionLabel {
+}
+
+.dataCollectionDataTypeLabel {
+}
+
+.dataCollectionLeftHBox {
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+.dataCollectionLeftHBox .sapMFlexItem:first-child {
+    width: auto !important;
+    padding-left: 10px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+.dataCollectionLeftHBox .sapMFlexItem:last-child {
+    width: auto !important;
+    padding-left: 4px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+.dataCollectionRightHBoxHBox {
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+.dataCollectionRightHBoxHBox .sapMFlexItem:first-child {
+    width: auto !important;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+.dataCollectionRightHBoxHBox .sapMFlexItem:last-child {
+    width: auto !important;
+    padding-left: 4px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+
+.dataCollectionMinMaxLabel {
+    color:grey;
+}
+
+.dataCollectionUnitsLabel {
+    color:grey;
+}
+
+.dataCollectionMaskLabel {
+    color:grey;
+}
+
+.dataCollectionUDFLabel {
+}
+
+. dataCollectionDataTypeUDFLabel {
+}
+
+.dataCollectionItem {
+  width: 97%;
+}
+
+.dataCollectionUDFItem {
+  width: 97%;
+}
+
+.dataCollectionItem .sapMFlexItem:first-child {
+  padding-top: 6px;
+  padding-left: 10px;
+}
+.dataCollectionUDFItem .sapMFlexItem:first-child {
+  padding-top: 6px;
+}
+
+.dataCollectionItem .sapMFlexItem {
+  padding-left: 3px;
+  width: 98%;
+}
+.dataCollectionUDFItem .sapMFlexItem {
+  padding-left: 13px;
+  width: 98%;
+}
+
+.dataCollectionNotRequiredLabel {
+    text-align: left;
+    padding-top:18px;
+}
+
+.dataCollectionRequiredLabel {
+    text-align: left;
+    padding-top:18px;
+}
+
+/* this is needed for sap_mvi theme to show * label - taken from sap_bluecrystal theme CSS */
+.dataCollectionRequiredLabel:before {
+    content: "*";
+    color: #007cc0;
+    font-size: 1rem;
+}
+
+.dataCollectionRequiredUDFLabel {
+    text-align: left;
+    padding-top:18px;
+}
+
+/* this is needed for sap_mvi theme to show * label - taken from sap_bluecrystal theme CSS */
+.dataCollectionRequiredUDFLabel:before {
+    content: "*";
+    color: #007cc0;
+    font-size: 1rem;
+}
+
+.dataCollectionRequiredItem {
+  width: 97%;
+}
+.dataCollectionRequiredUDFItem {
+  width: 97%;
+}
+
+.dataCollectionRequiredItem .sapMFlexItem:first-child {
+  padding-top: 6px;
+  padding-left: 3px;
+  width: 98%;
+}
+
+.dataCollectionRequiredUDFItem .sapMFlexItem:first-child {
+  padding-top: 6px;
+  padding-left: 3px;
+  padding-right: 2px;
+  width: 96%;
+}
+
+.dataCollectionRequiredItem .sapMFlexItem:last-child {
+  padding-left: 3px;
+  width: 2%;
+}
+
+.dataCollectionRequiredUDFItem .sapMFlexItem:last-child {
+  padding-left: 3px;
+  padding-right: 2px;
+  width: 4%;
+}
+
+.statusInfoVBox {
+}
+.statusInfoVBox .sapMFlexItem {
+  padding-left: 13px;
+  width: 100%;
+}
+
+.statusInfoRow {
+    width: 100%;
+}
+
+.statusInfoRow .sapMFlexItem:first-child {
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    width: 50%;
+}
+
+.statusInfoRow .sapMFlexItem:last-child {
+    padding-left: 4px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    width: 50%;
+}
+.statusInfoRowItem {
+    height: 46px;
+}
+.statusInfoRowTextLabel {
+}
+.statusInfoRowTextValue {
+}
+
+.statusInfoRowImageLabel {
+    padding-top: 1em;
+}
+.statusInfoRowImageValue {
+}
+
+.sfcStatusLeftVBox {
+}
+
+.sfcStatusRightVBox {
+}
+
+.sfcStatusSfcLabel {
+}
+
+.sfcStatusOperLabel {
+}
+
+.sfcStatusIcon {
+    text-align: left;
+    padding-right: 10px;
+}
+.sfcStatusLabel {
+    text-align: left;
+    padding-right: 10px;
+}
