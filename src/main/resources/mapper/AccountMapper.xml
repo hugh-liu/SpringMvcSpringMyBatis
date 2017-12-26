@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hugh.dao.AccountDao">
+	<!-- 登录验证 -->
+	<select id="findAccount" parameterType="com.hugh.entity.Account" resultType="com.hugh.entity.Account">
+		SELECT * FROM ACCOUNT WHERE NAME = #{name} AND PASSWORD = #{password}
+	</select>
+</mapper>

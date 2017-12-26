@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hugh.dao.LoggerDao">
+	<!-- 实体基类 -->
+	<resultMap id="BaseEntityResultMap" type="com.hugh.entity.BaseEntity" >
+		<result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+	    <result column="update_date" jdbcType="TIMESTAMP" property="updateDate" />
+	</resultMap>
+	
+	<!-- 用户表 -->
+	<resultMap id="AccountResultMap" type="com.hugh.entity.Account" extends="BaseEntityResultMap">
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="PASSWORD" jdbcType="VARCHAR" property="password" />
+	</resultMap>
+	
+	<!-- 日志表 -->
+	<resultMap id="LoggerResultMap" type="com.hugh.entity.Logger" extends="BaseEntityResultMap">
+		<result column="UUID" jdbcType="VARCHAR" property="uuid" />
+    	<result column="method" jdbcType="VARCHAR" property="method" />
+    	<result column="method_des" jdbcType="VARCHAR" property="methodDes" />
+	    <result column="exception_code" jdbcType="VARCHAR" property="exceptionCode" />
+	    <result column="exception_msg" jdbcType="VARCHAR" property="exceptionMsg" />
+	    <result column="params" jdbcType="VARCHAR" property="params" />
+	    <result column="logger_type" jdbcType="VARCHAR" javaType="com.hugh.enums.LoggerType" property="loggerType" />
+	    <result column="logger_state" jdbcType="VARCHAR" javaType="com.hugh.enums.LoggerState" property="loggerState" />
+	    <result column="solution" jdbcType="VARCHAR" property="solution" />
+	    <result column="ip" jdbcType="VARCHAR" property="ip" />
+	    <association column="create_account" javaType="com.hugh.entity.Account" property="createAccount" select="findAccount" />
+		<association column="update_account" javaType="com.hugh.entity.Account" property="updateAccount" select="findAccount" />
+	</resultMap>
+
+	<!-- 日志表字段 -->
+	<sql id="Logger_Column_List" >
+		UUID, method, method_des, exception_code, exception_msg, params, logger_type, logger_state, 
+		solution, ip, create_account, update_account, create_date, update_date
+	</sql>
+	
+	<!-- 用户表字段 -->
+	<sql id="Account_Column_List" >
+		name, PASSWORD, create_date, update_date
+	</sql>
+	
+	<!-- 加载日志信息 -->
+	<select id="loadLogger" resultMap="LoggerResultMap" >
+		SELECT
+		<include refid="Logger_Column_List" />
+		FROM logger
+	</select>
+	
+	<!-- 根据用户名查询用户信息 -->
+	<select id="findAccount" parameterType="java.lang.String" resultMap="AccountResultMap">
+		SELECT
+		<include refid="Account_Column_List" />
+		FROM account
+		WHERE name = #{name}
+	</select>
+	
+	<!-- 新增日志信息  -->
+	<insert id="insertLogger" parameterType="com.hugh.entity.Logger">
+	    insert into logger
+	    <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="uuid != null">UUID,</if>
+		    <if test="method != null">method,</if>
+		    <if test="methodDes != null">method_des,</if>
+		    <if test="exceptionCode != null">exception_code,</if>
+		    <if test="exceptionMsg != null">exception_msg,</if>
+		    <if test="params != null">params,</if>
+		    <if test="loggerType != null">logger_type,</if>
+		    <if test="loggerState != null">logger_state,</if>
+		    <if test="solution != null">solution,</if>
+		    <if test="ip != null">ip,</if>
+		    <if test="createAccount != null">create_account,</if>
+		    <if test="updateAccount != null">update_account,</if>
+		    <if test="createDate != null">create_date,</if>
+		    <if test="updateDate != null">update_date,</if>
+	    </trim>
+	    <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="uuid != null">#{uuid,jdbcType=VARCHAR},</if>
+		    <if test="method != null">#{method,jdbcType=VARCHAR},</if>
+		    <if test="methodDes != null">#{methodDes,jdbcType=VARCHAR},</if>
+		    <if test="exceptionCode != null">#{exceptionCode,jdbcType=VARCHAR},</if>
+		    <if test="exceptionMsg != null">#{exceptionMsg,jdbcType=VARCHAR},</if>
+		    <if test="params != null">#{params,jdbcType=VARCHAR},</if>
+		    <if test="loggerType != null">#{loggerType,jdbcType=CHAR},</if>
+		    <if test="loggerState != null">#{loggerState,jdbcType=VARCHAR},</if>
+		    <if test="solution != null">#{solution,jdbcType=VARCHAR},</if>
+		    <if test="ip != null">#{ip,jdbcType=VARCHAR},</if>
+		    <if test="createAccount != null">#{createAccount.name,jdbcType=VARCHAR},</if>
+		    <if test="updateAccount != null">#{updateAccount.name,jdbcType=VARCHAR},</if>
+      		<if test="createDate != null">#{createDate,jdbcType=TIMESTAMP},</if>
+			<if test="updateDate != null">#{updateDate,jdbcType=TIMESTAMP},</if>
+    	</trim>
+	</insert>
+</mapper>

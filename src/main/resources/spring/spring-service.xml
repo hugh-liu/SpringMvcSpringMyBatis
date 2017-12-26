@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+	<!-- 扫描service包下所有使用注解的类 -->
+	<context:component-scan base-package="com.hugh.service" />
+	<context:component-scan base-package="com.hugh.enums" />
+
+	<!-- 配置事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<!-- 注入数据库连接池 -->
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- 通知 -->
+	<!-- transaction-manager 表示把这通知给谁 transactionManager就是上面的事务管理器的id -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!-- 传播行为 -->
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="find*" propagation="SUPPORTS" read-only="true" />
+			<tx:method name="load*" propagation="SUPPORTS" read-only="true" />
+			<tx:method name="select*" propagation="SUPPORTS" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- aop 通知是有aop来调用 -->
+	<aop:config>
+		<!-- execution(* com.hugh.service.impl.*.*(..)) 表示要切com.hugh.service.impl这个包下面的所有类的所有方法 -->
+		<aop:advisor advice-ref="txAdvice" pointcut="execution(* com.hugh.service.impl.*.*(..))" />
+	</aop:config>
+	
+	<!-- 日志切面类 -->
+	<bean id="loggerAspect" class="com.hugh.common.LoggerAspect" />
+	<!-- 利用aop实现日志管理 -->
+	<aop:config>
+        <aop:aspect id="aspect" ref="loggerAspect">
+        	<!-- 定义切入点 -->
+        	<aop:pointcut id="service" expression="execution(* com.hugh.service.impl.*.*(..))" />
+        	<aop:pointcut id="controller" expression="execution(* com.hugh.controller.*.*(..))" />
+        	<!-- 定义切入点前置方法 -->
+            <aop:before method="beforeLogger" pointcut-ref="controller"/>
+            <!-- 定义切入点后置方法 -->
+            <!-- <aop:after method="afterLogger" pointcut-ref="service"/> -->
+            <!-- 定义切入点返回方法 -->
+            <!-- <aop:after-returning method="afterReturningLogger" pointcut-ref="service"/> -->
+            <!-- 定义切入点异常方法 -->
+            <aop:after-throwing method="afterThrowingLogger" pointcut-ref="service" throwing="e"/>
+            <!-- 定义切入点环绕方法 -->
+            <!-- <aop:around method="aroundLogger" pointcut-ref="service"/> -->
+        </aop:aspect>
+	</aop:config>
+	
+	<!-- 配置基于注解的声明式事务 -->
+	<!-- <tx:annotation-driven transaction-manager="transactionManager" /> -->
+</beans>
