@@ -343,6 +343,13 @@ http://www.jb51.net/softjc/454464.html	如何设置中央仓下载路径
         <url>http://maven.aliyun.com/nexus/content/groups/public</url>
 </mirror>
 ```
+#### 3、创建包
+![22](/img/22.png)  
+| 包名 | 说明 | 作用 |
+| :------------ | :--------------- | :----- |
+| dao | 数据库持久层（接口） | 对数据进行增删改查的操作，这里我们就不需要再建dao.impl包了，因为我们持久层的框架用的是mybatis，所以可以直接在配置文件中实现接口的每个方法。 |
+| entity | 实体类 | 与数据库的表相对应，封装dao层取出来的数据，一般只在dao层与service层之间传输 |
+| service | 业务逻辑层（接口） | 写业务逻辑的接口 |
 ***
 ***
 ### 第三章前后台交互demo
