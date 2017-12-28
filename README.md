@@ -677,9 +677,352 @@ jdbc.testConnectionOnCheckout=false
 ***
 ***
 ### 第三章前后台交互demo
+#### 1、在WEB-INF下添加webPage文件夹存放jsp文件，该目录下必须通过后台访问
+#### 2、在webPage文件下添加login.jsp文件
+```
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Hugh-User Login</title>
+	<meta http-equiv="pragma" content="no-cache">
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="expires" content="0">    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+	<meta http-equiv="description" content="This is my page">
+	<!--
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	-->
+  </head>
+  
+  <body>
+	<form action=""  method="">
+		<input type="text" name="name" value=""/>
+		<input type="password" name="password" value=""/>
+		<input type="submit" value="提交" />
+	</form>
+  </body>
+</html>
+```
+#### 3、写一个对应的controller，在controller包下添加AccountController.java文件，由于我们页面是写在web-inf目录下，所以在controller里写一个获取页面的方法
+```
+package com.hugh.controller;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+/**
+ * 
+ * 控制器-登录
+ * 
+ * @author jinhui
+ *
+ */
+@Controller
+@RequestMapping(value = "/account")
+public class AccountController {
+
+	/**
+	 * 获取登录页面
+	 * 
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value = "/login", method = { RequestMethod.GET })
+	public String login(HttpServletRequest request, HttpServletResponse response) {
+		return "login";
+	}
+}
+```
+#### 4、运行项目输入登录路径看是否运行正常
+![24](/img/24.png) 
 ***
 ***
 ### 第四章登录验证demo
+#### 1、打开mysql数据创建数据库hugh，表名account
+```
+/*===========================================*/
+/*新建数据库命名为：hugh
+/*===========================================*/
+CREATE DATABASE hugh;
+
+USE hugh;
+
+/*==============================================================*/
+/* Table: account	账户
+/*==============================================================*/
+CREATE TABLE account
+(
+    NAME	    VARCHAR(20) PRIMARY KEY NOT NULL COMMENT '用户名，主键',
+    PASSWORD	    VARCHAR(20) NOT NULL COMMENT '用户密码',
+    create_date      DATETIME NOT NULL COMMENT '创建时间',
+    update_date	    DATETIME NOT NULL COMMENT '修改时间'
+ );
+INSERT INTO account(NAME,PASSWORD,create_date,update_date) VALUE('admin','admin',NOW(),NOW());
+SELECT * FROM ACCOUNT;
+```
+#### 2、在com.hugh.entity包下创建BaseEntity实体类-基类
+```
+package com.hugh.entity;
+
+import java.util.Date;
+
+/**
+ * 实体类-基类
+ * 
+ * @author jinhui
+ * 
+ */
+public class BaseEntity {
+	private Date createDate;// 创建时间
+	private Date updateDate;// 修改时间
+
+	public BaseEntity() {
+	}
+
+	public Date getCreateDate() {
+		return createDate;
+	}
+
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+
+	public Date getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
+	}
+
+}
+```
+#### 3、在com.hugh.entity包下创建Account实体类-用户
+```
+package com.hugh.entity;
+
+/**
+ * 实体类-用户
+ * 
+ * @author jinhui
+ *
+ */
+public class Account extends BaseEntity {
+
+	private String name;// 用户名
+	private String password;// 密码
+
+	public Account() {}
+	
+	public Account(String name, String password) {
+		this.setName(name);
+		this.setPassword(password);
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+}
+```
+#### 4、在com.hugh.vo包下创建登录VO对象LoginVO类
+```
+package com.hugh.vo;
+
+/**
+ * VO层-登录
+ * 
+ * @author jinhui
+ *
+ */
+public class LoginVO {
+	private String name;// 账号
+	private String password;// 密码
+	
+	public LoginVO() {}
+	
+	public LoginVO(String name, String password) {
+		this.name = name;
+		this.password = password;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+}
+```
+#### 5、在com.hugh.dao包下创建AccountDao接口类
+```
+package com.hugh.dao;
+
+import com.hugh.entity.Account;
+
+/**
+ * 持久层-用户
+ * 
+ * @author jinhui
+ *
+ */
+public interface AccountDao {
+	/**
+	 * 登录验证
+	 * 
+	 * @param account 用户实体类
+	 * @return 用户实体类
+	 */
+	Account findAccount(Account account);
+}
+```
+#### 6、在mapper目录下创建AccountMapper.xml
+```
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hugh.dao.AccountDao">
+	<!-- 登录验证 -->
+	<select id="findAccount" parameterType="Account" resultType="Account">
+		SELECT * FROM ACCOUNT WHERE NAME = #{name} AND PASSWORD = #{password}
+	</select>
+</mapper>
+```
+#### 7、在com.hugh.service包下创建AccountService接口类
+```
+package com.hugh.service;
+
+import com.hugh.vo.LoginVO;
+
+/**
+ * 业务层接口类-用户
+ * 
+ * @author jinhui
+ *
+ */
+public interface AccountService {
+
+	/**
+	 * 登录验证
+	 * 
+	 * @param loginVO 登录VO
+	 * @return 是否成功
+	 */
+	public boolean findAccount(LoginVO loginVO);
+
+}
+```
+#### 8、在com.hugh.service.impl包下创建AccountService接口的实现类AccountServiceImpl类
+```
+package com.hugh.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.hugh.dao.AccountDao;
+import com.hugh.entity.Account;
+import com.hugh.service.AccountService;
+import com.hugh.vo.LoginVO;
+
+/**
+ * 业务层实现类-用户
+ * 
+ * @author jinhui
+ *
+ */
+@Service
+public class AccountServiceImpl implements AccountService {
+
+	@Autowired
+	private AccountDao accountDao;
+
+	@Override
+	public boolean findAccount(LoginVO loginVO) {
+		Account account = new Account(loginVO.getName(), loginVO.getPassword());
+		account = accountDao.findAccount(account);
+		if (account == null) {
+			return false;
+		}
+		return true;
+	}
+
+}
+```
+#### 9、在com.hugh.controller包AccountController控制器中引用：
+```
+@Resource
+private AccountService accountService;
+```
+添加方法：
+```
+/**
+ * 登录验证
+ * @param request
+ * @param response
+ * @param loginVO 登录VO
+ * @return
+ */
+@RequestMapping(value = "/login", method = { RequestMethod.POST })
+public String login(HttpServletRequest request, HttpServletResponse response, LoginVO loginVO) {
+	if(accountService.findAccount(loginVO)) {
+		return "main";
+	}
+	return "login";
+}
+```
+#### 10、修改login.jsp中的form表单action=”login”，method=”post”
+#### 11、在webPage目录下创建main.jsp文件
+```
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>My JSP 'index.jsp' starting page</title>
+	<meta http-equiv="pragma" content="no-cache">
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="expires" content="0">    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+	<meta http-equiv="description" content="This is my page">
+	<!--
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	-->
+  </head>
+  
+  <body>
+	登录成功！
+  </body>
+</html>
+```
+#### 12、运行测试：
+![25](/img/25.png) 
+![26](/img/26.png) 
 ***
 ***
 ### 第五章登录拦截器demo
