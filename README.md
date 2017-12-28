@@ -351,6 +351,12 @@ http://www.jb51.net/softjc/454464.html	如何设置中央仓下载路径
 | dao | 数据库持久层（接口） | 对数据进行增删改查的操作，这里我们就不需要再建dao.impl包了，因为我们持久层的框架用的是mybatis，所以可以直接在配置文件中实现接口的每个方法。 |
 | entity | 实体类 | 与数据库的表相对应，封装dao层取出来的数据，一般只在dao层与service层之间传输 |
 | service | 业务逻辑层（接口） | 写业务逻辑的接口 |
+| service.impl | 业务逻辑层（实现） | 业务逻辑接口的实现，所有业务逻辑处理都应该在service层，同时事务管理一般也都是在service层 |
+| controller | 控制器层 | SpringMVC就是用在这前后台交互的层，相当于struts中的action或者servlet |
+| vo | 视图对象 | 因为在很多时候entity对象是满足不了页面所需要的信息，这时候就需要vo对象，把entity跟vo区分开是很有必要的 |
+| mapper | 持久层的sql映射 | 存放dao中每个方法对应的sql，在这里配置了就无需写daoimpl层了 |
+| Spring | 配置文件 | 这是存放spring相关的配置文件，这里分为三层dao、service、web三层 |
+| 文件名 | 说明 |
 
 ***
 ***
