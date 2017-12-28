@@ -1,4 +1,4 @@
-# SpringMvc+Spring+MyBatis项目
+# SpringMVC+Spring+MyBatis项目
 ***
 ## 前  言
 本项目是用maven管理创建的一个简单的SpringMvc+Spring+MyBatis的web框架，里面用到些常用的技术，能够快速的搭建一套web框架，如说明的不好还望谅解。
