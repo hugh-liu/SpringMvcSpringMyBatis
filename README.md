@@ -677,15 +677,605 @@ jdbc.testConnectionOnCheckout=false
 ***
 ***
 ### 第三章前后台交互demo
+#### 1、在WEB-INF下添加webPage文件夹存放jsp文件，该目录下必须通过后台访问
+#### 2、在webPage文件下添加login.jsp文件
+```
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Hugh-User Login</title>
+	<meta http-equiv="pragma" content="no-cache">
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="expires" content="0">    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+	<meta http-equiv="description" content="This is my page">
+	<!--
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	-->
+  </head>
+  
+  <body>
+	<form action=""  method="">
+		<input type="text" name="name" value=""/>
+		<input type="password" name="password" value=""/>
+		<input type="submit" value="提交" />
+	</form>
+  </body>
+</html>
+```
+#### 3、写一个对应的controller，在controller包下添加AccountController.java文件，由于我们页面是写在web-inf目录下，所以在controller里写一个获取页面的方法
+```
+package com.hugh.controller;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+/**
+ * 
+ * 控制器-登录
+ * 
+ * @author jinhui
+ *
+ */
+@Controller
+@RequestMapping(value = "/account")
+public class AccountController {
+
+	/**
+	 * 获取登录页面
+	 * 
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value = "/login", method = { RequestMethod.GET })
+	public String login(HttpServletRequest request, HttpServletResponse response) {
+		return "login";
+	}
+}
+```
+#### 4、运行项目输入登录路径看是否运行正常
+![24](/img/24.png) 
 ***
 ***
 ### 第四章登录验证demo
+#### 1、打开mysql数据创建数据库hugh，表名account
+```
+/*===========================================*/
+/*新建数据库命名为：hugh
+/*===========================================*/
+CREATE DATABASE hugh;
+
+USE hugh;
+
+/*==============================================================*/
+/* Table: account	账户
+/*==============================================================*/
+CREATE TABLE account
+(
+    NAME	    VARCHAR(20) PRIMARY KEY NOT NULL COMMENT '用户名，主键',
+    PASSWORD	    VARCHAR(20) NOT NULL COMMENT '用户密码',
+    create_date      DATETIME NOT NULL COMMENT '创建时间',
+    update_date	    DATETIME NOT NULL COMMENT '修改时间'
+ );
+INSERT INTO account(NAME,PASSWORD,create_date,update_date) VALUE('admin','admin',NOW(),NOW());
+SELECT * FROM ACCOUNT;
+```
+#### 2、在com.hugh.entity包下创建BaseEntity实体类-基类
+```
+package com.hugh.entity;
+
+import java.util.Date;
+
+/**
+ * 实体类-基类
+ * 
+ * @author jinhui
+ * 
+ */
+public class BaseEntity {
+	private Date createDate;// 创建时间
+	private Date updateDate;// 修改时间
+
+	public BaseEntity() {
+	}
+
+	public Date getCreateDate() {
+		return createDate;
+	}
+
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+
+	public Date getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
+	}
+
+}
+```
+#### 3、在com.hugh.entity包下创建Account实体类-用户
+```
+package com.hugh.entity;
+
+/**
+ * 实体类-用户
+ * 
+ * @author jinhui
+ *
+ */
+public class Account extends BaseEntity {
+
+	private String name;// 用户名
+	private String password;// 密码
+
+	public Account() {}
+	
+	public Account(String name, String password) {
+		this.setName(name);
+		this.setPassword(password);
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+}
+```
+#### 4、在com.hugh.vo包下创建登录VO对象LoginVO类
+```
+package com.hugh.vo;
+
+/**
+ * VO层-登录
+ * 
+ * @author jinhui
+ *
+ */
+public class LoginVO {
+	private String name;// 账号
+	private String password;// 密码
+	
+	public LoginVO() {}
+	
+	public LoginVO(String name, String password) {
+		this.name = name;
+		this.password = password;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+}
+```
+#### 5、在com.hugh.dao包下创建AccountDao接口类
+```
+package com.hugh.dao;
+
+import com.hugh.entity.Account;
+
+/**
+ * 持久层-用户
+ * 
+ * @author jinhui
+ *
+ */
+public interface AccountDao {
+	/**
+	 * 登录验证
+	 * 
+	 * @param account 用户实体类
+	 * @return 用户实体类
+	 */
+	Account findAccount(Account account);
+}
+```
+#### 6、在mapper目录下创建AccountMapper.xml
+```
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hugh.dao.AccountDao">
+	<!-- 登录验证 -->
+	<select id="findAccount" parameterType="Account" resultType="Account">
+		SELECT * FROM ACCOUNT WHERE NAME = #{name} AND PASSWORD = #{password}
+	</select>
+</mapper>
+```
+#### 7、在com.hugh.service包下创建AccountService接口类
+```
+package com.hugh.service;
+
+import com.hugh.vo.LoginVO;
+
+/**
+ * 业务层接口类-用户
+ * 
+ * @author jinhui
+ *
+ */
+public interface AccountService {
+
+	/**
+	 * 登录验证
+	 * 
+	 * @param loginVO 登录VO
+	 * @return 是否成功
+	 */
+	public boolean findAccount(LoginVO loginVO);
+
+}
+```
+#### 8、在com.hugh.service.impl包下创建AccountService接口的实现类AccountServiceImpl类
+```
+package com.hugh.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.hugh.dao.AccountDao;
+import com.hugh.entity.Account;
+import com.hugh.service.AccountService;
+import com.hugh.vo.LoginVO;
+
+/**
+ * 业务层实现类-用户
+ * 
+ * @author jinhui
+ *
+ */
+@Service
+public class AccountServiceImpl implements AccountService {
+
+	@Autowired
+	private AccountDao accountDao;
+
+	@Override
+	public boolean findAccount(LoginVO loginVO) {
+		Account account = new Account(loginVO.getName(), loginVO.getPassword());
+		account = accountDao.findAccount(account);
+		if (account == null) {
+			return false;
+		}
+		return true;
+	}
+
+}
+```
+#### 9、在com.hugh.controller包AccountController控制器中引用：
+```
+@Resource
+private AccountService accountService;
+```
+添加方法：
+```
+/**
+ * 登录验证
+ * @param request
+ * @param response
+ * @param loginVO 登录VO
+ * @return
+ */
+@RequestMapping(value = "/login", method = { RequestMethod.POST })
+public String login(HttpServletRequest request, HttpServletResponse response, LoginVO loginVO) {
+	if(accountService.findAccount(loginVO)) {
+		return "main";
+	}
+	return "login";
+}
+```
+#### 10、修改login.jsp中的form表单action=”login”，method=”post”
+#### 11、在webPage目录下创建main.jsp文件
+```
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>My JSP 'index.jsp' starting page</title>
+	<meta http-equiv="pragma" content="no-cache">
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="expires" content="0">    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+	<meta http-equiv="description" content="This is my page">
+	<!--
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	-->
+  </head>
+  
+  <body>
+	登录成功！
+  </body>
+</html>
+```
+#### 12、运行测试：
+![25](/img/25.png) 
+![26](/img/26.png) 
 ***
 ***
 ### 第五章登录拦截器demo
+#### 1、在com.hugh.controller包下创建HomeController类
+```
+package com.hugh.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+/**
+ * 控制器-主页
+ * 
+ * @author jinhui
+ *
+ */
+@Controller
+public class HomeController {
+
+	/**
+	 * 获取主页页面
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/", method = { RequestMethod.GET })
+	public String home() {
+		return "main";
+	} 
+}
+```
+#### 2、修改web.xml的欢迎页面改为/
+![27](/img/27.png) 
+#### 3、在文件夹src/main/java下创建com.hugh.common包，这个包主要放一些公共的类
+#### 4、修改登录验证方法，把登录成功的用户信息放到session里如下图
+![28](/img/28.png) 
+#### 5、在配置文件spring-web.xml文件中添加拦截器配置，添加登录路径不拦截
+```
+<!-- 拦截器 -->  
+<mvc:interceptors>  
+    <!-- 多个拦截器，顺序执行 -->  
+    <mvc:interceptor>  
+        <!-- /**表示所有url包括子url路径 -->  
+        <mvc:mapping path="/**"/>
+        <bean class="com.hugh.common.LoginInterceptor">
+        	<!-- 如果请求中包含以下路径，则不进行拦截 --> 
+	        <property name="excludePath">    
+		        <list>    
+					<value>/account/login</value>
+				</list>    
+			</property>
+		</bean>
+    </mvc:interceptor>  
+</mvc:interceptors>
+```
+#### 6、在com.hugh.common包下创建LoginInterceptor类实现org.springframework.web.servlet.HandlerInterceptor类
+#### 7、在这里讲一下实现的三个方法的作用：
+第一个preHandle：执行Handler方法之前执行 用于身份认证、身份授权 比如身份认证，如果认证通过表示当前用户没有登陆，需要此方法拦截不再向下执行  
+第二个postHandle：进入Handler方法之后，返回modelAndView之前执行 应用场景从modelAndView出发：将公用的模型数据(比如菜单导航)在这里传到视图，也可以在这里统一指定视图  
+第三个afterCompletion：执行Handler完成执行此方法 应用场景：统一异常处理，统一日志处理  
+#### 8、所以我们的登录验证用preHandle方法就可以了，并在里面添加数组excludePath来存储xml文件里配置的不拦截路径，记住一定要给这个变量get和set方法不然就会报错，并引用用户业务层接口类，在preHandle方法里写拦截代码，代码如下：
+```
+package com.hugh.common;
+
+import java.util.Arrays;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.hugh.service.AccountService;
+import com.hugh.vo.LoginVO;
+
+/**
+ * 登录拦截器
+ * 
+ * @author jinhui
+ *
+ */
+public class LoginInterceptor implements HandlerInterceptor {
+	
+	@Resource
+	private AccountService accountService;
+	
+	private String[] excludePath;// 不拦截路径
+	
+	public String[] getExcludePath() {
+		return excludePath;
+	}
+
+	public void setExcludePath(String[] excludePath) {
+		this.excludePath = excludePath;
+	}
+	
+	/**
+	 * 执行Handler方法之前执行 用于身份认证、身份授权 比如身份认证，如果认证通过表示当前用户没有登陆，需要此方法拦截不再向下执行
+	 */
+	@Override
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+		// 先判断是否需要拦截该请求
+		if (!Arrays.asList(this.excludePath).contains(request.getServletPath())) {
+			// 获取SESSION
+			HttpSession session = request.getSession();
+			// 获得当前session帐号
+			LoginVO loginVO = (LoginVO) session.getAttribute("Global.loginVO");
+			// 如果登录对象为空或者登录验证失败
+			if(loginVO == null || !accountService.findAccount(loginVO)) {
+				request.getRequestDispatcher("account/login").forward(request, response);
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * 进入Handler方法之后，返回modelAndView之前执行 应用场景从modelAndView出发：将公用的模型数据(比如菜单导航)在这里
+	 */
+	@Override
+	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+	}
+
+	/**
+	 * 执行Handler完成执行此方法 应用场景：统一异常处理，统一日志处理
+	 */
+	@Override
+	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+	}
+
+}
+```
+#### 9、重新启动项目发现会直接跳到登录页面，证明拦截器就起作用了，如果没有拦截器你运行他是调用的HomeController控制器home方法，返回页面是main.jsp
 ***
 ***
 ### 第六章使用mybatis逆向工程生成代码
+#### 1、逆向工程用过hibernate的都清楚他有自己逆向工程工具，当然MyBatis也有自己的逆向工程工具。我可以新建一个项目专门用来生成代码，因为如果我们把这个逆向工程写到开发的项目里还是有一定风险，所以我们新建一个项目专门用来生成代码。
+#### 2、首先创建一个java项目generator
+第一步 导入mybatis-generator-core-1.3.5.jar  
+第二步 在src目录下创建generatorConfig.xml代码如下：  
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+	<!-- mysql数据库驱动包 -->
+	<classPathEntry location="C:\Users\jinhui\.m2\repository\mysql\mysql-connector-java\5.1.18\mysql-connector-java-5.1.18.jar" />
+	<context id="hughTable"  targetRuntime="MyBatis3">
+		<!-- JavaBean 实现 序列化 接口 -->
+		<plugin type="org.mybatis.generator.plugins.SerializablePlugin"></plugin>
+		<!-- genenat entity时,生成toString -->
+		<plugin type="org.mybatis.generator.plugins.ToStringPlugin" />
+		<!-- 开启支持内存分页   可生成 支持内存分布的方法及参数  -->
+		<plugin type="org.mybatis.generator.plugins.RowBoundsPlugin" />
+		<!-- generate entity时，生成hashcode和equals方法 -->
+		<plugin type="org.mybatis.generator.plugins.EqualsHashCodePlugin" />
+		
+		<!-- 将Example改名为Query  -->      
+		<plugin type="org.mybatis.generator.plugins.RenameExampleClassPlugin">  
+			<property name="searchString" value="Example$" />
+			<property name="replaceString" value="Query" />
+		</plugin>
+		
+		<!-- 注释 -->
+		<commentGenerator >    
+            <property name="suppressAllComments" value="true"/><!-- 是否取消注释 -->    
+            <property name="suppressDate" value="true" /> <!-- 是否生成注释代时间戳-->    
+        </commentGenerator>
+	
+		<!-- 数据库连接信息：路径、驱动类、密码、用户名 -->
+	    <jdbcConnection 
+	    	connectionURL="jdbc:mysql://localhost:3306/hugh"
+	    	driverClass="com.mysql.jdbc.Driver"
+	    	password="tiger"
+	    	userId="root" />
+	    
+	    <!-- 类型转换 -->
+	    <javaTypeResolver>
+	    	<!-- 是否使用BigDecimal，false可自动转化以下类型(Long，Integer，Short，etc) -->
+	    	<property name="forceBigDecimals" value="false"/>
+	    </javaTypeResolver>
+	    
+	    <!-- 生成实体类的位置 -->
+	    <javaModelGenerator targetPackage="com.hugh.entity" targetProject=".\src" >
+	    	<!-- enableSubPackages：是否让schema作为包的后缀 -->
+	    	<property name="enableSubPackages" value="false"/>
+	    	<!-- trimStrings：是否针对String类型的字段在set的时候进行trim调用 -->
+	    	<property name="trimStrings" value="true"/>
+	    </javaModelGenerator>
+	    
+	    <!-- 生成mapxml文件 -->
+	    <sqlMapGenerator targetPackage="mapper" targetProject=".\src" >
+	    	<!-- enableSubPackages：是否让schema作为包的后缀 -->
+	    	<property name="enableSubPackages" value="false"/>
+	    </sqlMapGenerator>
+	    
+	    <!-- 生成接口dao -->
+	    <javaClientGenerator targetPackage="com.hugh.dao" targetProject=".\src" type="XMLMAPPER" >
+	    	<!-- enableSubPackages：是否让schema作为包的后缀 -->
+	    	<property name="enableSubPackages" value="false"/>
+	    </javaClientGenerator>
+	    
+	    <!-- 指定生成数据库表-指定数据库所有表 -->
+	    <table tableName="account" domainObjectName="Account" ></table>
+	</context>
+</generatorConfiguration>
+```
+第三步 创建包cn.main，并根据我们开发项目创建相对应的包  
+第四步 在cn.main包下创建MybatisGenerator类去执行逆向工程生成代码  
+```
+package cn.main;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.mybatis.generator.api.MyBatisGenerator;
+import org.mybatis.generator.config.Configuration;
+import org.mybatis.generator.config.xml.ConfigurationParser;
+import org.mybatis.generator.internal.DefaultShellCallback;
+
+public class MybatisGenerator {
+    public static void generator() throws Exception{
+           List<String> warnings = new ArrayList<String>();
+           boolean overwrite = true;
+           //项目根路径不要有中文,我的有中文,所以使用绝对路径
+           File configFile = new File("F:\\eclipse-workspace\\generator\\src\\generatorConfig.xml");
+           ConfigurationParser cp = new ConfigurationParser(warnings);
+           Configuration config = cp.parseConfiguration(configFile);
+           DefaultShellCallback callback = new DefaultShellCallback(overwrite);
+           MyBatisGenerator myBatisGenerator = new MyBatisGenerator(config, callback, warnings);
+           myBatisGenerator.generate(null);
+    }
+    public static void main(String[] args) {
+        try {
+            generator();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+}
+```
+第五步 创建完后项目结构如下图，然后我们执行MybatisGenerator类：  
+![29](/img/29.png) 
+第六步 执行完MybatisGenerator类后他就生成下图见容，如果执行完没反映请刷新项目他就出来了，然后可以把自己需要的代码复制到项目去，因为自动生成的代码有很多还是跟我们自己的需求和设计的是不一样的，所以只要将能用的复制过去就行了。  
+![30](/img/30.png) 
 ***
 ***
 ### 第七章利用aop注解实现日志管理
+#### 1、认识Spring AOP
+	AOP（Aspect Oriented Programming），即面向切面编程，可以说是OOP（Object Oriented Programming，面向对象编程）的补充和完善。它利用一种称为"横切"的技术，剖解开封装的对象内部，并将那些影响了多个类的公共行为封装到一个可重用模块，并将其命名为"Aspect"，即切面。  
+	所谓"切面"，简单说就是那些与业务无关，却为业务模块所共同调用的逻辑或责任封装起来，便于减少系统的重复代码，降低模块之间的耦合度，并有利于未来的可操作性和可维护性。使用"横切"技术，AOP把软件系统分为两个部分：核心关注点和横切关注点。业务处理的主要流程是核心关注点，与之关系不大的部分是横切关注点。横切关注点的一个特点是，他们经常发生在核心关注点的多处，而各处基本相似，比如权限认证、日志、事物。  
+	AOP的作用在于分离系统中的各种关注点，将核心关注点和横切关注点分离开来。  
+
