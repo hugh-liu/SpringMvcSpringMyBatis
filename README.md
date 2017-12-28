@@ -1026,6 +1026,138 @@ public String login(HttpServletRequest request, HttpServletResponse response, Lo
 ***
 ***
 ### 第五章登录拦截器demo
+#### 1、在com.hugh.controller包下创建HomeController类
+```
+package com.hugh.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+/**
+ * 控制器-主页
+ * 
+ * @author jinhui
+ *
+ */
+@Controller
+public class HomeController {
+
+	/**
+	 * 获取主页页面
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/", method = { RequestMethod.GET })
+	public String home() {
+		return "main";
+	} 
+}
+```
+#### 2、修改web.xml的欢迎页面改为/
+![27](/img/27.png) 
+#### 3、在文件夹src/main/java下创建com.hugh.common包，这个包主要放一些公共的类
+#### 4、修改登录验证方法，把登录成功的用户信息放到session里如下图
+![28](/img/28.png) 
+#### 5、在配置文件spring-web.xml文件中添加拦截器配置，添加登录路径不拦截
+```
+<!-- 拦截器 -->  
+<mvc:interceptors>  
+    <!-- 多个拦截器，顺序执行 -->  
+    <mvc:interceptor>  
+        <!-- /**表示所有url包括子url路径 -->  
+        <mvc:mapping path="/**"/>
+        <bean class="com.hugh.common.LoginInterceptor">
+        	<!-- 如果请求中包含以下路径，则不进行拦截 --> 
+	        <property name="excludePath">    
+		        <list>    
+					<value>/account/login</value>
+				</list>    
+			</property>
+		</bean>
+    </mvc:interceptor>  
+</mvc:interceptors>
+```
+#### 6、在com.hugh.common包下创建LoginInterceptor类实现org.springframework.web.servlet.HandlerInterceptor类
+#### 7、在这里讲一下实现的三个方法的作用：
+第一个preHandle：执行Handler方法之前执行 用于身份认证、身份授权 比如身份认证，如果认证通过表示当前用户没有登陆，需要此方法拦截不再向下执行  
+第二个postHandle：进入Handler方法之后，返回modelAndView之前执行 应用场景从modelAndView出发：将公用的模型数据(比如菜单导航)在这里传到视图，也可以在这里统一指定视图  
+第三个afterCompletion：执行Handler完成执行此方法 应用场景：统一异常处理，统一日志处理  
+#### 8、所以我们的登录验证用preHandle方法就可以了，并在里面添加数组excludePath来存储xml文件里配置的不拦截路径，记住一定要给这个变量get和set方法不然就会报错，并引用用户业务层接口类，在preHandle方法里写拦截代码，代码如下：
+```
+package com.hugh.common;
+
+import java.util.Arrays;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.hugh.service.AccountService;
+import com.hugh.vo.LoginVO;
+
+/**
+ * 登录拦截器
+ * 
+ * @author jinhui
+ *
+ */
+public class LoginInterceptor implements HandlerInterceptor {
+	
+	@Resource
+	private AccountService accountService;
+	
+	private String[] excludePath;// 不拦截路径
+	
+	public String[] getExcludePath() {
+		return excludePath;
+	}
+
+	public void setExcludePath(String[] excludePath) {
+		this.excludePath = excludePath;
+	}
+	
+	/**
+	 * 执行Handler方法之前执行 用于身份认证、身份授权 比如身份认证，如果认证通过表示当前用户没有登陆，需要此方法拦截不再向下执行
+	 */
+	@Override
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+		// 先判断是否需要拦截该请求
+		if (!Arrays.asList(this.excludePath).contains(request.getServletPath())) {
+			// 获取SESSION
+			HttpSession session = request.getSession();
+			// 获得当前session帐号
+			LoginVO loginVO = (LoginVO) session.getAttribute("Global.loginVO");
+			// 如果登录对象为空或者登录验证失败
+			if(loginVO == null || !accountService.findAccount(loginVO)) {
+				request.getRequestDispatcher("account/login").forward(request, response);
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * 进入Handler方法之后，返回modelAndView之前执行 应用场景从modelAndView出发：将公用的模型数据(比如菜单导航)在这里
+	 */
+	@Override
+	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+	}
+
+	/**
+	 * 执行Handler完成执行此方法 应用场景：统一异常处理，统一日志处理
+	 */
+	@Override
+	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+	}
+
+}
+```
+#### 9、重新启动项目发现会直接跳到登录页面，证明拦截器就起作用了，如果没有拦截器你运行他是调用的HomeController控制器home方法，返回页面是main.jsp
 ***
 ***
 ### 第六章使用mybatis逆向工程生成代码
