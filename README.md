@@ -1161,6 +1161,121 @@ public class LoginInterceptor implements HandlerInterceptor {
 ***
 ***
 ### 第六章使用mybatis逆向工程生成代码
+#### 1、逆向工程用过hibernate的都清楚他有自己逆向工程工具，当然MyBatis也有自己的逆向工程工具。我可以新建一个项目专门用来生成代码，因为如果我们把这个逆向工程写到开发的项目里还是有一定风险，所以我们新建一个项目专门用来生成代码。
+#### 2、首先创建一个java项目generator
+第一步 导入mybatis-generator-core-1.3.5.jar  
+第二步 在src目录下创建generatorConfig.xml代码如下：  
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+	<!-- mysql数据库驱动包 -->
+	<classPathEntry location="C:\Users\jinhui\.m2\repository\mysql\mysql-connector-java\5.1.18\mysql-connector-java-5.1.18.jar" />
+	<context id="hughTable"  targetRuntime="MyBatis3">
+		<!-- JavaBean 实现 序列化 接口 -->
+		<plugin type="org.mybatis.generator.plugins.SerializablePlugin"></plugin>
+		<!-- genenat entity时,生成toString -->
+		<plugin type="org.mybatis.generator.plugins.ToStringPlugin" />
+		<!-- 开启支持内存分页   可生成 支持内存分布的方法及参数  -->
+		<plugin type="org.mybatis.generator.plugins.RowBoundsPlugin" />
+		<!-- generate entity时，生成hashcode和equals方法 -->
+		<plugin type="org.mybatis.generator.plugins.EqualsHashCodePlugin" />
+		
+		<!-- 将Example改名为Query  -->      
+		<plugin type="org.mybatis.generator.plugins.RenameExampleClassPlugin">  
+			<property name="searchString" value="Example$" />
+			<property name="replaceString" value="Query" />
+		</plugin>
+		
+		<!-- 注释 -->
+		<commentGenerator >    
+            <property name="suppressAllComments" value="true"/><!-- 是否取消注释 -->    
+            <property name="suppressDate" value="true" /> <!-- 是否生成注释代时间戳-->    
+        </commentGenerator>
+	
+		<!-- 数据库连接信息：路径、驱动类、密码、用户名 -->
+	    <jdbcConnection 
+	    	connectionURL="jdbc:mysql://localhost:3306/hugh"
+	    	driverClass="com.mysql.jdbc.Driver"
+	    	password="tiger"
+	    	userId="root" />
+	    
+	    <!-- 类型转换 -->
+	    <javaTypeResolver>
+	    	<!-- 是否使用BigDecimal，false可自动转化以下类型(Long，Integer，Short，etc) -->
+	    	<property name="forceBigDecimals" value="false"/>
+	    </javaTypeResolver>
+	    
+	    <!-- 生成实体类的位置 -->
+	    <javaModelGenerator targetPackage="com.hugh.entity" targetProject=".\src" >
+	    	<!-- enableSubPackages：是否让schema作为包的后缀 -->
+	    	<property name="enableSubPackages" value="false"/>
+	    	<!-- trimStrings：是否针对String类型的字段在set的时候进行trim调用 -->
+	    	<property name="trimStrings" value="true"/>
+	    </javaModelGenerator>
+	    
+	    <!-- 生成mapxml文件 -->
+	    <sqlMapGenerator targetPackage="mapper" targetProject=".\src" >
+	    	<!-- enableSubPackages：是否让schema作为包的后缀 -->
+	    	<property name="enableSubPackages" value="false"/>
+	    </sqlMapGenerator>
+	    
+	    <!-- 生成接口dao -->
+	    <javaClientGenerator targetPackage="com.hugh.dao" targetProject=".\src" type="XMLMAPPER" >
+	    	<!-- enableSubPackages：是否让schema作为包的后缀 -->
+	    	<property name="enableSubPackages" value="false"/>
+	    </javaClientGenerator>
+	    
+	    <!-- 指定生成数据库表-指定数据库所有表 -->
+	    <table tableName="account" domainObjectName="Account" ></table>
+	</context>
+</generatorConfiguration>
+```
+第三步 创建包cn.main，并根据我们开发项目创建相对应的包  
+第四步 在cn.main包下创建MybatisGenerator类去执行逆向工程生成代码  
+```
+package cn.main;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.mybatis.generator.api.MyBatisGenerator;
+import org.mybatis.generator.config.Configuration;
+import org.mybatis.generator.config.xml.ConfigurationParser;
+import org.mybatis.generator.internal.DefaultShellCallback;
+
+public class MybatisGenerator {
+    public static void generator() throws Exception{
+           List<String> warnings = new ArrayList<String>();
+           boolean overwrite = true;
+           //项目根路径不要有中文,我的有中文,所以使用绝对路径
+           File configFile = new File("F:\\eclipse-workspace\\generator\\src\\generatorConfig.xml");
+           ConfigurationParser cp = new ConfigurationParser(warnings);
+           Configuration config = cp.parseConfiguration(configFile);
+           DefaultShellCallback callback = new DefaultShellCallback(overwrite);
+           MyBatisGenerator myBatisGenerator = new MyBatisGenerator(config, callback, warnings);
+           myBatisGenerator.generate(null);
+    }
+    public static void main(String[] args) {
+        try {
+            generator();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+}
+```
+第五步 创建完后项目结构如下图，然后我们执行MybatisGenerator类：  
+![29](/img/29.png) 
+第六步 执行完MybatisGenerator类后他就生成下图见容，如果执行完没反映请刷新项目他就出来了，然后可以把自己需要的代码复制到项目去，因为自动生成的代码有很多还是跟我们自己的需求和设计的是不一样的，所以只要将能用的复制过去就行了。  
+![30](/img/30.png) 
 ***
 ***
 ### 第七章利用aop注解实现日志管理
+#### 1、认识Spring AOP
+	AOP（Aspect Oriented Programming），即面向切面编程，可以说是OOP（Object Oriented Programming，面向对象编程）的补充和完善。它利用一种称为"横切"的技术，剖解开封装的对象内部，并将那些影响了多个类的公共行为封装到一个可重用模块，并将其命名为"Aspect"，即切面。  
+	所谓"切面"，简单说就是那些与业务无关，却为业务模块所共同调用的逻辑或责任封装起来，便于减少系统的重复代码，降低模块之间的耦合度，并有利于未来的可操作性和可维护性。使用"横切"技术，AOP把软件系统分为两个部分：核心关注点和横切关注点。业务处理的主要流程是核心关注点，与之关系不大的部分是横切关注点。横切关注点的一个特点是，他们经常发生在核心关注点的多处，而各处基本相似，比如权限认证、日志、事物。  
+	AOP的作用在于分离系统中的各种关注点，将核心关注点和横切关注点分离开来。  
+
