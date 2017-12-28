@@ -14,8 +14,8 @@
 8、数据命名规则：全部小写用下划线连接如：create_date
 ***
 ## 目录
-* [第一章、创建Maven项目](#第一章、maven项目)
-* [第二章、整合springmvc、spring、mybatis框架](#第二章、整合springmvc、spring、mybatis框架)
+* [第一章、创建Maven项目](#第一章maven项目)
+* [第二章、整合springmvc、spring、mybatis框架](#第二章整合springmvc\spring\mybatis框架)
 * [第三章、前后台交互DEMO](#第三章、前后台交互DEMO)
 * [第四章、登录验证DEMO](#第四章、登录验证DEMO)
 * [第五章、登录拦截器DEMO](#第五章、登录拦截器DEMO)
@@ -92,7 +92,7 @@ Java版本修改1.8（和前面jdk版面一样就行了）
 ![21](/img/21.png)  
 ***
 ***
-### 第二章、整合SpringMVC、Spring、MyBatis框架
+### 第二章整合springmvc\spring\mybatis框架
 ***
 ***
 ### 第三章、前后台交互DEMO
