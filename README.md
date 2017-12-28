@@ -356,8 +356,324 @@ http://www.jb51.net/softjc/454464.html	如何设置中央仓下载路径
 | vo | 视图对象 | 因为在很多时候entity对象是满足不了页面所需要的信息，这时候就需要vo对象，把entity跟vo区分开是很有必要的 |
 | mapper | 持久层的sql映射 | 存放dao中每个方法对应的sql，在这里配置了就无需写daoimpl层了 |
 | Spring | 配置文件 | 这是存放spring相关的配置文件，这里分为三层dao、service、web三层 |
-| 文件名 | 说明 |
+| 文件名 |  | 说明 |
+| Java |  | 存放java代码 |
+| Resources |  | 存放资源文件 |
+| Webapp |  | 存放静态资源 |
+| WEB-INF |  | 这个文件夹内的资源外部无法访问的，只能通过后台去访问，可以把页面放在这里更安全 |
+| Test |  | 测试分支，测试用到的 |
 
+#### 4、创建spring配置文件，为了更直观清晰分为三个文件，分别是web、service、dao
+##### 4.1、在spring文件夹下创建spring-web.xml文件
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc  
+        http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd"> 
+        
+	<!-- 启动注解模式 -->
+	<mvc:annotation-driven />
+	
+	<!-- 静态资源设置 -->
+	<mvc:default-servlet-handler/>
+
+	<!-- 扫描Controlle控制器类 -->
+	<context:component-scan base-package="com.hugh.controller"/>
+	
+	<!-- 视图渲染器 配置 -->
+	<bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+		<!-- 前缀 指定资源存放的位置 -->
+		<property name="prefix" value="/WEB-INF/webPage/" />
+		<!-- 后缀 指定资源的类型 -->
+		<property name="suffix" value=".jsp" />
+	</bean>
+	
+	<!-- JSON数据转换器 -->
+	<bean id="stringConverter"
+		class="org.springframework.http.converter.StringHttpMessageConverter">
+		<property name="supportedMediaTypes">
+			<list>
+				<value>text/plain;charset=UTF-8</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="jsonConverter"
+		class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"></bean>
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+		<property name="messageConverters">
+			<list>
+				<ref bean="stringConverter" />
+				<ref bean="jsonConverter" />
+			</list>
+		</property>
+	</bean>
+	
+	<!-- SpringMVC上传文件时，需要配置MultipartResolver处理器 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="UTF-8" />
+		<!-- 指定所上传文件的总大小不能超过200KB。注意maxUploadSize属性的限制不是针对单个文件，而是所有文件的容量之和 -->
+		<property name="maxUploadSize" value="-1" />
+	</bean>
+	<!-- SpringMVC在超出上传文件限制时，会抛出org.springframework.web.multipart.MaxUploadSizeExceededException -->
+	<!-- 该异常是SpringMVC在检查上传的文件信息时抛出来的，而且此时还没有进入到Controller方法中 -->
+	<bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<property name="exceptionMappings">
+			<props>
+				<!-- 遇到MaxUploadSizeExceededException异常时，自动跳转到XXX页面 -->
+				<prop key="org.springframework.web.multipart.MaxUploadSizeExceededException">login.html</prop>
+			</props>
+		</property>
+	</bean>
+
+</beans>
+```
+##### 4.2、在spring文件夹下创建spring-service.xml文件
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+	<!-- 扫描service包下所有使用注解的类 -->
+	<context:component-scan base-package="com.hugh.service" />
+
+	<!-- 配置事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<!-- 注入数据库连接池 -->
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- 通知 -->
+	<!-- transaction-manager 表示把这通知给谁 transactionManager就是上面的事务管理器的id -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!-- 传播行为 -->
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="find*" propagation="SUPPORTS" read-only="true" />
+			<tx:method name="get*" propagation="SUPPORTS" read-only="true" />
+			<tx:method name="select*" propagation="SUPPORTS" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- aop 通知是有aop来调用 -->
+	<aop:config>
+		<!-- execution(* com.hugh.service.impl.*.*(..)) 表示要切com.hugh.service.impl这个包下面的所有类的所有方法 -->
+		<aop:advisor advice-ref="txAdvice"
+			pointcut="execution(* com.hugh.service.impl.*.*(..))" />
+	</aop:config>
+
+	<!-- 配置基于注解的声明式事务 -->
+	<!-- <tx:annotation-driven transaction-manager="transactionManager" /> -->
+</beans>
+```
+##### 4.3、在spring文件夹下创建spring-dao.xml文件
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd">
+	
+	<!-- 配置扫描数据库信息配置文件 jdbc.properties -->
+	<context:property-placeholder location="classpath:jdbc.properties" />
+
+	<!-- 配置c3p0 数据源 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<!-- 数据库驱动名称 -->
+		<property name="driverClass" value="${jdbc.driverClassName}"></property>
+		<!-- 数据库连接路径 -->
+		<property name="jdbcUrl" value="${jdbc.url}"></property>
+		<!-- 数据库登录名 -->
+		<property name="user" value="${jdbc.username}"></property>
+		<!-- 数据库登录密码 -->
+		<property name="password" value="${jdbc.password}"></property>
+		<!-- 初始化时获取的连接数，取值应在minPoolSize与maxPoolSize之间。Default: 3 -->
+		<property name="initialPoolSize" value="${jdbc.initialPoolSize}"></property>
+		<!-- 连接池中保留的最小连接数 -->
+		<property name="minPoolSize" value="${jdbc.minPoolSize}"></property>
+		<!-- 连接池中保留的最大连接数,Default: 15 -->
+		<property name="maxPoolSize" value="${jdbc.maxPoolSize}"></property>
+		<!-- 最大空闲时间,60秒内未使用则连接被丢弃。若为0则永不丢弃。Default: 0 -->
+		<property name="maxIdleTime" value="${jdbc.maxIdleTime}"></property>
+		<!-- 当连接池中的连接耗尽的时候c3p0一次同时获取的连接数。Default: 3 -->
+		<property name="acquireIncrement" value="${jdbc.acquireIncrement}"></property>
+		<!-- 每60秒检查所有连接池中的空闲连接。Default: 0 -->
+		<property name="idleConnectionTestPeriod" value="${jdbc.idleConnectionTestPeriod}"></property>
+		<!-- 定义在从数据库获取新连接失败后重复尝试的次数。Default: 30  -->
+		<property name="acquireRetryAttempts" value="${jdbc.acquireRetryAttempts}"></property>
+		<!-- 获取连接失败将会引起所有等待连接池来获取连接的线程抛出异常。但是数据源仍有效保留，并在下次调用getConnection()的时候继续尝试获取连接。如果设为true，那么在尝试获取连接失败后该数据源将申明已断开并永久关闭。Default: false -->
+		<property name="breakAfterAcquireFailure" value="${jdbc.breakAfterAcquireFailure}"></property>
+		<!-- JDBC的标准参数，用以控制数据源内加载的PreparedStatements数量。但由于预缓存的statements属于单个connection而不是整个连接池。所以设置这个参数需要考虑到多方面的因素。如果maxStatements与maxStatementsPerConnection均为0，则缓存被关闭。Default: 0 -->
+		<property name="maxStatements" value="${jdbc.maxStatements}"></property>
+		<!-- 因性能消耗大请只在需要的时候使用它。如果设为true那么在每个connection提交的时候都将校验其有效性。建议使用idleConnectionTestPeriod或automaticTestTable等方法来提升连接测试的性能。Default: false -->
+		<property name="testConnectionOnCheckout" value="${jdbc.testConnectionOnCheckout}"></property>
+	</bean>
+
+	<!-- 配置Mybatis 的SqlSessionFactory 工厂 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- 加载mybatis配置文件 -->
+		<property name="configLocation" value="classpath:mybatis.cfg.xml" />
+		<!-- 扫描entity包 使用别名 -->
+		<property name="typeAliasesPackage" value="com.hugh.entity" />
+		<!-- 扫描sql配置文件:mapper需要的xml文件 -->
+		<property name="mapperLocations" value="classpath:mapper/*.xml" />
+		<!-- 多个设置sql语句映射文件 -->
+		<!-- <property name="mapperLocations">
+			<list>
+				表示在com/card/dao/impl目录下的任意以-Mapper.xml结尾所有文件
+				<value>classpath:com/card/dao/impl/*Mapper.xml</value>
+			</list>
+		</property> -->
+	</bean>
+
+	<!-- 配置扫描Dao接口包，动态实现Dao接口，注入到spring容器中 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 注入sqlSessionFactory -->
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+		<!-- 给出需要扫描Dao接口包 -->
+		<property name="basePackage" value="com.hugh.dao" />
+	</bean>
+</beans> 
+```
+##### 4.4、在src/main/resources文件夹下创建jdbc.properties文件
+```
+jdbc.driverClassName=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/hugh?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+jdbc.username=root
+jdbc.password=tiger
+jdbc.initialPoolSize=10
+jdbc.minPoolSize=5
+jdbc.maxPoolSize=30
+jdbc.maxIdleTime=60
+jdbc.acquireIncrement=5
+jdbc.idleConnectionTestPeriod=60
+jdbc.acquireRetryAttempts=20
+jdbc.breakAfterAcquireFailure=false
+jdbc.maxStatements=0
+jdbc.testConnectionOnCheckout=false 
+```
+##### 4.5、在resources文件夹下创建mybatis.cfg.xml文件
+```
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<!-- 配置全局属性 -->
+	<settings>
+		<!-- 使用jdbc的getGeneratedKeys获取数据库自增主键值 -->
+		<setting name="useGeneratedKeys" value="true" />
+
+		<!-- 使用列别名替换列名 默认:true -->
+		<setting name="useColumnLabel" value="true" />
+
+		<!-- 开启驼峰命名转换:Table{create_time} -> Entity{createTime} -->
+		<setting name="mapUnderscoreToCamelCase" value="true" />
+
+<!-- 让sql语句在控制台输出 -->
+		<setting name="logImpl" value="STDOUT_LOGGING"/>
+	</settings>
+</configuration> 
+```
+##### 4.6、配置web.xml文件
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+    id="WebApp_ID" version="3.0">
+    <display-name>test-hd-</display-name>
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+    
+	<!-- 字符过滤器 -->
+	<filter>
+		<filter-name>characterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param> 
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>characterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+    
+    <!-- 如果是用mvn命令生成的xml，需要修改servlet版本为3.1 -->
+	<!-- 配置DispatcherServlet -->
+	<servlet>
+		<servlet-name>dispatcherServlet</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<!-- 配置springMVC需要加载的配置文件
+			spring-dao.xml,spring-service.xml,spring-web.xml
+			Mybatis - > spring -> springmvc
+		 -->
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:spring/spring-*.xml</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>dispatcherServlet</servlet-name>
+		<!-- 默认匹配所有的请求 -->
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	
+</web-app>
+```
+##### 4.7、修改index.jsp文件
+```
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>My JSP 'index.jsp' starting page</title>
+	<meta http-equiv="pragma" content="no-cache">
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="expires" content="0">    
+	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+	<meta http-equiv="description" content="This is my page">
+	<!--
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	-->
+  </head>
+  
+  <body>
+	测试
+  </body>
+</html>
+```
+好了，我们再启动下服务看到如下页面，启动没报错就证明你配置正确
+![23](/img/23.png) 
 ***
 ***
 ### 第三章前后台交互demo
