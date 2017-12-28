@@ -1268,14 +1268,466 @@ public class MybatisGenerator {
 }
 ```
 第五步 创建完后项目结构如下图，然后我们执行MybatisGenerator类：  
-![29](/img/29.png) 
+![29](/img/29.png)  
 第六步 执行完MybatisGenerator类后他就生成下图见容，如果执行完没反映请刷新项目他就出来了，然后可以把自己需要的代码复制到项目去，因为自动生成的代码有很多还是跟我们自己的需求和设计的是不一样的，所以只要将能用的复制过去就行了。  
-![30](/img/30.png) 
+![30](/img/30.png)  
 ***
 ***
 ### 第七章利用aop注解实现日志管理
 #### 1、认识Spring AOP
-	AOP（Aspect Oriented Programming），即面向切面编程，可以说是OOP（Object Oriented Programming，面向对象编程）的补充和完善。它利用一种称为"横切"的技术，剖解开封装的对象内部，并将那些影响了多个类的公共行为封装到一个可重用模块，并将其命名为"Aspect"，即切面。  
-	所谓"切面"，简单说就是那些与业务无关，却为业务模块所共同调用的逻辑或责任封装起来，便于减少系统的重复代码，降低模块之间的耦合度，并有利于未来的可操作性和可维护性。使用"横切"技术，AOP把软件系统分为两个部分：核心关注点和横切关注点。业务处理的主要流程是核心关注点，与之关系不大的部分是横切关注点。横切关注点的一个特点是，他们经常发生在核心关注点的多处，而各处基本相似，比如权限认证、日志、事物。  
-	AOP的作用在于分离系统中的各种关注点，将核心关注点和横切关注点分离开来。  
+AOP（Aspect Oriented Programming），即面向切面编程，可以说是OOP（Object Oriented Programming，面向对象编程）的补充和完善。它利用一种称为"横切"的技术，剖解开封装的对象内部，并将那些影响了多个类的公共行为封装到一个可重用模块，并将其命名为"Aspect"，即切面。  
+所谓"切面"，简单说就是那些与业务无关，却为业务模块所共同调用的逻辑或责任封装起来，便于减少系统的重复代码，降低模块之间的耦合度，并有利于未来的可操作性和可维护性。使用"横切"技术，AOP把软件系统分为两个部分：核心关注点和横切关注点。业务处理的主要流程是核心关注点，与之关系不大的部分是横切关注点。横切关注点的一个特点是，他们经常发生在核心关注点的多处，而各处基本相似，比如权限认证、日志、事物。  
+AOP的作用在于分离系统中的各种关注点，将核心关注点和横切关注点分离开来。  
+##### AOP核心概念
+##### 1.1、横切关注点：
+对哪些方法进行拦截，拦截后怎么处理，这些关注点称之为横切关注点  
+##### 1.2、切面（aspect）：
+类是对物体特征的抽象，切面就是对横切关注点的抽象
+##### 1.3、连接点（joinpoint）：
+被拦截到的点，因为Spring只支持方法类型的连接点，所以在Spring中连接点指的就是被拦截到的方法，实际上连接点还可以是字段或者构造器
+##### 1.4、切入点（pointcut）：
+对连接点进行拦截的定义
+##### 1.5、通知（advice）：
+所谓通知指的就是指拦截到连接点之后要执行的代码，通知分为前置、后置、异常、最终、环绕通知五类
+##### 1.6、目标对象：
+代理的目标对象
+##### 1.7、织入（weave）：
+将切面应用到目标对象并导致代理对象创建的过程
+##### 1.8、引入（introduction）：
+在不修改代码的前提下，引入可以在运行期为类动态地添加一些方法或字段
+#### 2、在com.hugh.common包下创建一个切面类LoggerAspect.java，里面增加一个前置日志记录器、后置日志记录器、返回日志记录器、异常日志记录器、环绕日志记录器5个方法，注意环绕不要和其他通知类型一起用在同一切入点上，因为环绕已经包括所有通知类型，而且会有冲突。还有当我们用异常日志记录器时他是不对异常做处理的，也就是他会把异常往上层抛，而环绕的话就可以在里面捕捉到异常进行处理后不再往上抛，而是自己定义返回参数。
+```
+package com.hugh.common;
+
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
+
+/**
+ * 日志记录器-切面类
+ * 
+ * @author jinhui
+ *
+ */
+public class LoggerAspect {
+
+	/**
+	 * 日志记录器-前置
+	 * @param joinPoint 切入点参数
+	 */
+	public void beforeLogger(JoinPoint joinPoint) {
+		System.out.println("前置-日志记录器测试！");
+	}
+
+	/**
+	 * 日志记录器-后置
+	 * @param joinPoint 切入点参数
+	 */
+	public void afterLogger(JoinPoint joinPoint) {
+		System.out.println("后置-日志记录器测试！");
+	}
+
+	/**
+	 * 日志记录器-返回（如果执行中出现异常则不会进入到这里）
+	 * @param joinPoint 切入点参数
+	 */
+	public void afterReturningLogger(JoinPoint joinPoint) {
+		System.out.println("返回-日志记录器测试！");
+	}
+	
+	/**
+	 * 日志记录器-异常
+	 * @param joinPoint 切入点参数
+	 * @param e 异常参数
+	 */
+	public void afterThrowingLogger(JoinPoint joinPoint, Throwable e) {
+		System.out.println("错误信息：" + e.getMessage());
+	}
+	
+	/**
+	 * 日志记录器-环绕
+	 * @param pJoinPoint 切入点参数
+	 * @return 返回参数
+	 */
+	public Object aroundLogger(ProceedingJoinPoint pJoinPoint) {
+		Object result = null;
+		try {
+			System.out.println("环绕前置-日志记录器测试！");
+			result = pJoinPoint.proceed();
+			System.out.println("环绕后置-日志记录器测试！");
+		} catch (Throwable e) {
+			System.out.println("环绕异常-日志记录器测试！");
+		}
+		System.out.println("环绕返回-日志记录器测试！");
+		return result;
+	}
+
+}
+```
+#### 3、在spring-service.xml配置中添加如下代码
+```
+	<!-- 日志切面类 -->
+	<bean id="loggerAspect" class="com.hugh.common.LoggerAspect" />
+	<!-- 利用aop实现日志管理 -->
+	<aop:config>
+        <aop:aspect id="aspect" ref="loggerAspect">
+        	<!-- 定义切入点 -->
+        	<aop:pointcut id="controller" expression="execution(* com.hugh.controller.*.*(..))" />
+        	<!-- 定义切入点前置方法 -->
+            <aop:before method="beforeLogger" pointcut-ref="controller"/>
+            <!-- 定义切入点后置方法 -->
+            <aop:after method="afterLogger" pointcut-ref="controller"/>
+            <!-- 定义切入点返回方法 -->
+            <aop:after-returning method="afterReturningLogger" pointcut-ref="controller"/>
+            <!-- 定义切入点异常方法 -->
+            <aop:after-throwing method="afterThrowingLogger" pointcut-ref="controller" throwing="e"/>
+            <!-- 定义切入点环绕方法 -->
+            <aop:around method="aroundLogger" pointcut-ref="controller"/>   
+        </aop:aspect>
+	</aop:config>
+```
+由于我们定义的切入点是控制器层，所以只要进入控制器层的方法就会执行日志记录器
+#### 4、重新启动项目本来默认是主页，但由于拦截器检测到账号没有登录就会直接跳到获取登录页面的控制器方法里，这时我们的日志记录器就启作用了如下在控制台会出现：
+![31](/img/31.png) 
+#### 5、把日志信息记录到数据库中首先创建一个日志表
+```
+/*==============================================================*/
+/* Table: logger	日志
+/*==============================================================*/
+CREATE TABLE logger
+(
+    UUID 		VARCHAR(20) PRIMARY KEY NOT NULL COMMENT 'uuid，主键时间加随机',
+    method 		VARCHAR(500) COMMENT '方法名',
+    method_des 		VARCHAR(225) COMMENT '方法描述',
+    exception_code	VARCHAR(500) COMMENT '异常代码',
+    exception_msg	VARCHAR(500) COMMENT '异常信息',
+    params		VARCHAR(4000) COMMENT '请求参数',
+    logger_type	VARCHAR(20) NOT NULL COMMENT '日志类型，ABNORMAL为异常类型，NORMAL为正常类型',
+logger_state	VARCHAR(20) NOT NULL COMMENT '解决状态,NEW、RUNNING、SOLVE',
+solution		VARCHAR(500) COMMENT '解决方案',
+    ip 			VARCHAR(20) COMMENT 'ip地址',
+    create_account	VARCHAR(20) COMMENT '创建用户名，外键',
+    update_account	VARCHAR(20) COMMENT '修改用户名，外键',
+    create_date 	DATETIME NOT NULL COMMENT '创建时间',
+    update_date 	DATETIME NOT NULL COMMENT '修改时间'
+);
+/*日志与账户主外键关系*/
+ALTER TABLE logger ADD CONSTRAINT fk_logger_create_account FOREIGN KEY(create_account) REFERENCES account (NAME);
+ALTER TABLE logger ADD CONSTRAINT fk_logger_update_account FOREIGN KEY(update_account) REFERENCES account (NAME);
+/*新增测试数据*/
+INSERT INTO logger(UUID,method,method_des,exception_code,exception_msg,params,logger_type,logger_state,solution,ip,create_account,update_account,create_date,update_date)
+VALUE('20171212155030ABCDEF','test方法名','test方法描述','','','','NORMAL','SOLVE','','192.168.1.1','admin','admin',NOW(),NOW());
+
+SELECT * FROM logger
+```
+#### 6、创建一个装枚举的包com.hugh.enums，再创建日志类型LoggerType和日志状态LoggerState枚举对象
+![32](/img/32.png)  
+![33](/img/33.png)  
+#### 7、创建日志记录表实体类，可以用MyBatis的逆向工程自动创建然后复制过来，这个看大家的爱好，我创建的实体类如下（get\set方法就没截图了）：
+![34](/img/34.png)  
+#### 8、在DAO层创建LoggerDao接口，这里我们写两个方法，查询用来看日志是否记录成功
+![35](/img/35.png)  
+#### 9、在mapper文件下创建LoggerMapper.xml映射文件
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hugh.dao.LoggerDao">
+	<!-- 实体基类 -->
+	<resultMap id="BaseEntityResultMap" type="com.hugh.entity.BaseEntity" >
+		<result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+	    <result column="update_date" jdbcType="TIMESTAMP" property="updateDate" />
+	</resultMap>
+	
+	<!-- 用户表 -->
+	<resultMap id="AccountResultMap" type="com.hugh.entity.Account" extends="BaseEntityResultMap">
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="PASSWORD" jdbcType="VARCHAR" property="password" />
+	</resultMap>
+	
+	<!-- 日志表 -->
+	<resultMap id="LoggerResultMap" type="com.hugh.entity.Logger" extends="BaseEntityResultMap">
+		<result column="UUID" jdbcType="VARCHAR" property="uuid" />
+    	<result column="method" jdbcType="VARCHAR" property="method" />
+    	<result column="method_des" jdbcType="VARCHAR" property="methodDes" />
+	    <result column="exception_code" jdbcType="VARCHAR" property="exceptionCode" />
+	    <result column="exception_msg" jdbcType="VARCHAR" property="exceptionMsg" />
+	    <result column="params" jdbcType="VARCHAR" property="params" />
+	    <result column="logger_type" jdbcType="CHAR" javaType="com.hugh.enums.LoggerType" property="loggerType" />
+	    <result column="logger_state" jdbcType="VARCHAR" javaType="com.hugh.enums.LoggerState" property="loggerState" />
+	    <result column="solution" jdbcType="VARCHAR" property="solution" />
+	    <result column="ip" jdbcType="VARCHAR" property="ip" />
+	    <association column="create_account" javaType="com.hugh.entity.Account" property="createAccount" select="findAccount" />
+		<association column="update_account" javaType="com.hugh.entity.Account" property="updateAccount" select="findAccount" />
+	</resultMap>
+
+	<!-- 日志表字段 -->
+	<sql id="Logger_Column_List" >
+		UUID, method, method_des, exception_code, exception_msg, params, logger_type, logger_state, 
+		solution, ip, create_account, update_account, create_date, update_date
+	</sql>
+	
+	<!-- 用户表字段 -->
+	<sql id="Account_Column_List" >
+		name, PASSWORD, create_date, update_date
+	</sql>
+	
+	<!-- 加载日志信息 -->
+	<select id="loadLogger" resultMap="LoggerResultMap" >
+		SELECT
+		<include refid="Logger_Column_List" />
+		FROM logger
+	</select>
+	
+	<!-- 根据用户名查询用户信息 -->
+	<select id="findAccount" parameterType="java.lang.String" resultMap="AccountResultMap">
+		SELECT
+		<include refid="Account_Column_List" />
+		FROM account
+		WHERE name = #{name}
+	</select>
+	
+	<!-- 新增日志信息  -->
+	<insert id="insertLogger" parameterType="com.hugh.entity.Logger">
+	    insert into logger
+	    <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="uuid != null">UUID,</if>
+		    <if test="method != null">method,</if>
+		    <if test="methodDes != null">method_des,</if>
+		    <if test="exceptionCode != null">exception_code,</if>
+		    <if test="exceptionMsg != null">exception_msg,</if>
+		    <if test="params != null">params,</if>
+		    <if test="loggerType != null">logger_type,</if>
+		    <if test="loggerState != null">logger_state,</if>
+		    <if test="solution != null">solution,</if>
+		    <if test="ip != null">ip,</if>
+		    <if test="createAccount != null">create_account,</if>
+		    <if test="updateAccount != null">update_account,</if>
+		    <if test="createDate != null">create_date,</if>
+		    <if test="updateDate != null">update_date,</if>
+	    </trim>
+	    <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="uuid != null">#{uuid,jdbcType=VARCHAR},</if>
+		    <if test="method != null">#{method,jdbcType=VARCHAR},</if>
+		    <if test="methodDes != null">#{methodDes,jdbcType=VARCHAR},</if>
+		    <if test="exceptionCode != null">#{exceptionCode,jdbcType=VARCHAR},</if>
+		    <if test="exceptionMsg != null">#{exceptionMsg,jdbcType=VARCHAR},</if>
+		    <if test="params != null">#{params,jdbcType=VARCHAR},</if>
+		    <if test="loggerType != null">#{loggerType,jdbcType=CHAR},</if>
+		    <if test="loggerState != null">#{loggerState,jdbcType=VARCHAR},</if>
+		    <if test="solution != null">#{solution,jdbcType=VARCHAR},</if>
+		    <if test="ip != null">#{ip,jdbcType=VARCHAR},</if>
+		    <if test="createAccount != null">#{createAccount,jdbcType=VARCHAR},</if>
+		    <if test="updateAccount != null">#{updateAccount,jdbcType=VARCHAR},</if>
+      		<if test="createDate != null">#{createDate,jdbcType=TIMESTAMP},</if>
+			<if test="updateDate != null">#{updateDate,jdbcType=TIMESTAMP},</if>
+    	</trim>
+	</insert>
+</mapper>
+```
+#### 10、在src/test/java文件夹下创建包com.hugh.logger，然后创建LoggerTest.java测试类，调试下我们写的代码是否可用
+```
+package com.hugh.logger;
+
+import java.util.ArrayList;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.hugh.dao.LoggerDao;
+import com.hugh.entity.Logger;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+@RunWith(SpringJUnit4ClassRunner.class)  
+@ContextConfiguration(locations = "classpath*:spring/spring-*.xml") 
+public class LoggerTest {
+	
+	@Autowired
+	private LoggerDao loggerDao;
+	
+	@Test
+	public void test() {
+		ArrayList<Logger> logger = loggerDao.loadLogger();
+		System.out.println("获取数据完成！"); 
+		JSONArray jsonArray = JSONArray.fromObject(logger);
+		for (Object object : jsonArray) {
+			System.out.println(JSONObject.fromObject(object).toString());
+		}
+		System.out.println("转换数据完成！"); 
+	}
+
+}
+```
+#### 11、运行测试类控制台输出结果：
+![36](/img/36.png)  
+#### 12、创建LoggerService.java接口类和LoggerServiceImpl.java实现类
+![37](/img/37.png)  
+![38](/img/38.png)  
+#### 13、创建包com.hugh.annotation，在包里创建两个注解类用于日志记录方法的描述
+![39](/img/39.png)  
+![40](/img/40.png)  
+####  14、在日志记录器LoggerAspect类中添加两个方法
+```
+	/**
+	 * 获取控制层注解中对方法的描述信息
+	 * @param joinPoint 切点
+	 * @return 描述
+	 * @throws Exception
+	 */
+	public  static String getControllerMthodDescription(JoinPoint joinPoint) throws Exception {    
+		String targetName = joinPoint.getTarget().getClass().getName();    
+        String methodName = joinPoint.getSignature().getName();    
+        Object[] arguments = joinPoint.getArgs();    
+        @SuppressWarnings("rawtypes")
+		Class targetClass = Class.forName(targetName);    
+        Method[] methods = targetClass.getMethods();    
+        String description = "";    
+         for (Method method : methods) {    
+             if (method.getName().equals(methodName)) {    
+                @SuppressWarnings("rawtypes")
+				Class[] clazzs = method.getParameterTypes();    
+                 if (clazzs.length == arguments.length) {    
+                    description = method.getAnnotation(SystemControllerLog.class).description();    
+                     break;    
+                }    
+            }    
+        }    
+         return description;    
+    }
+	
+	/**
+	 * 获取业务层注解中对方法的描述信息
+	 * @param joinPoint 切点
+	 * @return 描述
+	 * @throws Exception
+	 */
+	public  static String getServiceMthodDescription(JoinPoint joinPoint) throws Exception {    
+		String targetName = joinPoint.getTarget().getClass().getName();    
+        String methodName = joinPoint.getSignature().getName();    
+        Object[] arguments = joinPoint.getArgs();    
+        @SuppressWarnings("rawtypes")
+		Class targetClass = Class.forName(targetName);    
+        Method[] methods = targetClass.getMethods();    
+        String description = "";    
+         for (Method method : methods) {    
+             if (method.getName().equals(methodName)) {    
+                @SuppressWarnings("rawtypes")
+				Class[] clazzs = method.getParameterTypes();    
+                 if (clazzs.length == arguments.length) {    
+                    description = method.getAnnotation(SystemServiceLog.class).description();    
+                     break;    
+                }    
+            }    
+        }    
+         return description;    
+    }
+```
+#### 15、那么现在给控制器和业务处理层方法都加上描述
+![41](/img/41.png)  
+![42](/img/42.png)  
+#### 16、在这里我们就用异常日志记录器记录业务层的异常记录日志，而前置日志记录器用于控制层功能操作记录日志，其他方法大家想怎么用都可以。
+在LoggerAspect类中引用  
+```
+@Resource
+LoggerService loggerService;
+```
+异常记录器方法：  
+```
+	/**
+	 * 日志记录器-异常
+	 * @param joinPoint 切入点参数
+	 * @param e 异常参数
+	 */
+	@SuppressWarnings("static-access")
+	public void afterThrowingLogger(JoinPoint joinPoint, Throwable e) {
+		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
+		HttpSession session = request.getSession();
+		Logger logger = new Logger();// 日志实体类
+		Date date = new Date();
+		LoginVO loginVO = (LoginVO)session.getAttribute("Global.loginVO");
+		String params = "";// 请求参数
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+		String uuid = dateFormat.format(date) + UUID.randomUUID().toString().substring(0,6);
+		logger.setUuid(uuid);
+		try {
+			logger.setMethod(joinPoint.getTarget().getClass().getName() + "." + joinPoint.getSignature().getName() + "()");
+			logger.setMethodDes(this.getServiceMthodDescription(joinPoint));
+			logger.setExceptionCode(e.getClass().getName());
+			logger.setExceptionMsg(e.getMessage());
+			//获取用户请求方法的参数并序列化为JSON格式字符串
+			if (joinPoint.getArgs() !=  null && joinPoint.getArgs().length > 0) {
+	            for ( int i = 0; i < joinPoint.getArgs().length; i++) {
+	            	params += JSONObject.fromObject(joinPoint.getArgs()[i]);
+	            }
+			}
+			logger.setParams(params);
+			logger.setIp(request.getRemoteAddr());
+			if(loginVO != null) {
+				Account account = new Account(loginVO.getName(), loginVO.getPassword());
+				logger.setCreateAccount(account);
+				logger.setUpdateAccount(account);
+			}
+		} catch (Exception e1) {
+			logger.setMethod("com.hugh.common.LoggerAspect.afterThrowingLogger(JoinPoint joinPoint, Throwable e)");
+			logger.setMethodDes("日志记录器-异常");
+			logger.setExceptionCode(e1.getClass().getName());
+			logger.setExceptionMsg(e1.getMessage());
+		} finally {
+			logger.setLoggerType(LoggerType.ABNORMAL);
+			logger.setLoggerState(LoggerState.NEW);
+			logger.setCreateDate(date);
+			logger.setUpdateDate(date);
+			loggerService.insertLogger(logger);
+		}
+	}
+```
+前置记录器方法：  
+```
+	/**
+	 * 日志记录器-前置
+	 * @param joinPoint 切入点参数
+	 */
+	@SuppressWarnings("static-access")
+	public void beforeLogger(JoinPoint joinPoint) {
+		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
+		HttpSession session = request.getSession();
+		Logger logger = new Logger();// 日志实体类
+		Date date = new Date();
+		LoginVO loginVO = (LoginVO)session.getAttribute("Global.loginVO");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+		String uuid = dateFormat.format(date) + UUID.randomUUID().toString().substring(0,6);
+		logger.setUuid(uuid);
+		try {
+			logger.setMethod(joinPoint.getTarget().getClass().getName() + "." + joinPoint.getSignature().getName() + "()");
+			logger.setMethodDes(this.getControllerMthodDescription(joinPoint));
+			logger.setIp(request.getRemoteAddr());
+			if(loginVO != null) {
+				Account account = new Account(loginVO.getName(), loginVO.getPassword());
+				logger.setCreateAccount(account);
+				logger.setUpdateAccount(account);
+			}
+			logger.setLoggerType(LoggerType.NORMAL);
+			logger.setLoggerState(LoggerState.SOLVE);
+		} catch (Exception e) {
+			logger.setMethod("com.hugh.common.LoggerAspect.beforeLogger(JoinPoint joinPoint)");
+			logger.setMethodDes("日志记录器-前置");
+			logger.setExceptionCode(e.getClass().getName());
+			logger.setExceptionMsg(e.getMessage());
+			logger.setLoggerType(LoggerType.ABNORMAL);
+			logger.setLoggerState(LoggerState.NEW);
+		} finally {
+			logger.setCreateDate(date);
+			logger.setUpdateDate(date);
+			loggerService.insertLogger(logger);
+		}
+	}
+```
+#### 17、为了有报错日志我们在登录验证的业务处理层方法中添加一行会报错的语句如下图，现在运行项目并登录一次，然后再执行我们的测试方法查看日志是否都记录成功
+![43](/img/43.png)  
+#### 18、登录提交后肯定会报错的，这里我们暂时没对前台异常错误拦截，所以就先不管报出错误没关系，现在我们再执行测试类LoggerTest，得到的结果会有4条记录，一条是创建表时新增的测试记录，第二条是获取登录页面、第三条是登录验证功能操作的，第四条是异常记录
+![44](/img/44.png)  
+
 
