@@ -1410,9 +1410,6 @@ solution		VARCHAR(500) COMMENT '解决方案',
     create_date 	DATETIME NOT NULL COMMENT '创建时间',
     update_date 	DATETIME NOT NULL COMMENT '修改时间'
 );
-/*日志与账户主外键关系*/
-ALTER TABLE logger ADD CONSTRAINT fk_logger_create_account FOREIGN KEY(create_account) REFERENCES account (NAME);
-ALTER TABLE logger ADD CONSTRAINT fk_logger_update_account FOREIGN KEY(update_account) REFERENCES account (NAME);
 /*新增测试数据*/
 INSERT INTO logger(UUID,method,method_des,exception_code,exception_msg,params,logger_type,logger_state,solution,ip,create_account,update_account,create_date,update_date)
 VALUE('20171212155030ABCDEF','test方法名','test方法描述','','','','NORMAL','SOLVE','','192.168.1.1','admin','admin',NOW(),NOW());
